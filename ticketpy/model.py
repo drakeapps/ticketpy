@@ -121,7 +121,8 @@ class Event:
     def __init__(self, event_id=None, name=None, start_date=None,
                  start_time=None, status=None, price_ranges=None,
                  venues=None, utc_datetime=None, classifications=None,
-                 links=None):
+                 links=None, images=None, promoters=None,
+                 url=None, seatmap=None, info=None):
         self.id = event_id
         self.name = name
         #: **Local** start date (*YYYY-MM-DD*)
@@ -134,6 +135,11 @@ class Event:
         self.price_ranges = price_ranges
         self.venues = venues
         self.links = links
+        self.images = images
+        self.promoters = promoters
+        self.url = url
+        self.seatmap = seatmap
+        self.info = info
         self.__utc_datetime = None
         if utc_datetime is not None:
             self.utc_datetime = utc_datetime
@@ -158,6 +164,8 @@ class Event:
         e.json = json_event
         e.id = json_event.get('id')
         e.name = json_event.get('name')
+        e.info = json_event.get('info')
+        e.url = json_event.get('url')
 
         dates = json_event.get('dates', {})
         start_dates = dates.get('start', {})
@@ -182,6 +190,40 @@ class Event:
                     pr_dict['max'] = pr['max']
                 price_ranges.append(pr_dict)
         e.price_ranges = price_ranges
+
+        images = []
+        if 'images' in json_event:
+            for im in json_event['images']:
+                im_dict = {}
+                if 'height' in im:
+                    im_dict['height'] = im['height']
+                if 'width' in im:
+                    im_dict['width'] = im['width']
+                if 'ratio' in im:
+                    im_dict['ratio'] = im['ratio']
+                if 'url' in im:
+                    im_dict['url'] = im['url']
+                images.append(im_dict)
+        e.images = images
+
+        promoters = []
+        if 'promoters' in json_event:
+            for pro in json_event['promoters']:
+                pro_dict = {}
+                if 'name' in pro:
+                    pro_dict['name'] = pro['name']
+                if 'id' in pro:
+                    pro_dict['id'] = pro['id']
+                if 'description' in pro:
+                    pro_dict['description'] = pro['description']
+                promoters.append(pro_dict)
+        e.promoters = promoters
+        
+        seatmap = ''
+        if 'seatmap' in json_event:
+            if 'staticUrl' in json_event['seatmap']:
+                seatmap = json_event['seatmap']['staticUrl']
+        e.seatmap = seatmap
 
         venues = []
         if 'venues' in json_event.get('_embedded', {}):
